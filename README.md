@@ -4,23 +4,23 @@ This repository contains a Python implementation that allows you to use gorilla-
 
 For this purpose you have to serve the gorilla-llm/gorilla-openfunctions-v2 with any engine that mimics the open AI chat completion protocol (ex: TGI huggingface, Vllm, Aphoridte engine, others).
 
-Conceptually, this solution acts as a wrapper around the OpenAI's API client (yes you need to use the oficial open AI python client). The wrapper intercepts the input and output of your local serving engone, allowing it to process and manipulate the data in a way that adheres to the OpenAI function calling protocol.
+Conceptually, this solution acts as a wrapper around the OpenAI's API client (yes you need to have installed the oficial open AI python client). The wrapper intercepts the input and output of your local serving engine, allowing it to process and transform the data in a way that adheres to the OpenAI function calling protocol.
 
 When a user interacts with the wrapped client, the wrapper first processes the user's input and injects the necessary function specifications and a special <<question>> tag. This modified input is then passed to the local engine for processing. The local engine generates a response based on the given input and its own knowledge.
 
-Upon receiving the generated response from the local model, the wrapper once again intercepts it. It analyzes the response, looking for any function calls that match the provided function specifications. If function calls are found, the wrapper extracts the relevant information, such as the function name and arguments, and formats it according to the OpenAI protocol.
+Upon receiving the generated response from the local entine, the wrapper once again intercepts it. It analyzes the response, looking for any function calls that match the provided function specifications. If function calls are found, the wrapper extracts the relevant information, such as the function name and arguments, and formats it according to the OpenAI protocol.
 
-Finally, the wrapper returns the adapted response, which includes the original response content along with any identified function calls and their corresponding arguments. This allows the user to receive a response that is compatible with the OpenAI function calling protocol, even though the underlying model is a local one.
+Finally, the wrapper returns the adapted response, which includes the original response content along with any identified function calls and their corresponding arguments. This allows the user to receive a response that is compatible with the OpenAI function calling protocol.
 
-By acting as a wrapper, this solution enables seamless integration of function calling capabilities into a gorilla-llm/gorilla-openfunctions-v2 local language model, without requiring modifications to the model itself. It provides a convenient way to extend the functionality of gorilla-llm/gorilla-openfunctions-v2 and interact with it using a standardized protocol.
+By acting as a wrapper, this solution enables seamless integration of function calling capabilities into your solutions using the great gorilla-llm/gorilla-openfunctions-v2 language model, without requiring modifications to the model itself. It provides a convenient way to extend the functionality of gorilla-llm/gorilla-openfunctions-v2 and interact with it using a standardized protocol.
 
 ## Purpose
 
-The main purpose of this code is to enable function calling with a local language model, similar to the functionality provided by OpenAI's API. By using this implementation, you can:
+The main purpose of this code is to have function calling with a local language model, similar to the functionality provided by OpenAI's API. By using this implementation, you can:
 
-- Specify a set of functions and their parameters that the local model can interact with.
-- Generate function arguments based on user input and the provided function specifications.
-- Execute the specified functions using the generated arguments.
+- Specify a set of functions and their parameters in the same way of the official open AI client.
+- Generate responses from the open AI client with function arguments based on user input and the provided function specifications.
+- An easy way to Execute the specified functions using the generated arguments.
 
 ## Next steps
 
