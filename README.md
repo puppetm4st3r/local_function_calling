@@ -1,6 +1,6 @@
 # Local gorilla-openfunctions-v2 with OpenAI Function Calling Protocol
 
-This repository contains a Python implementation that allows you to use gorilla-llm/gorilla-openfunctions-v2 language model to perform function calling using the OpenAI protocol. It provides a way to extend the capabilities of the local model by enabling it to generate function arguments and execute functions based on the provided specifications.
+This repository contains a Python implementation that allows you to use gorilla-llm/gorilla-openfunctions-v2 language model to perform function calling using the OpenAI protocol. 
 
 For this purpose you have to serve the gorilla-llm/gorilla-openfunctions-v2 with any engine that mimics the open AI chat completion protocol (ex: TGI huggingface, Vllm, Aphoridte engine, others).
 
