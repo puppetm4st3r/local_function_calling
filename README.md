@@ -28,6 +28,8 @@ There is room for improvement in the parser of the llm output since the existing
 
 ## Usage
 
+For testing I have create a function with a very large and complex description and works like a Charm for a 7b model =)
+
 ```python
 client = CustomOpenAIClient(
     base_url="http://llm_server_5000:5000/v1", # targets to your local serving llm engine with open ai protocol support
