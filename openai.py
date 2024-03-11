@@ -1,26 +1,44 @@
+from backoff import constant
 from openai import OpenAI
-from typing import Dict, Any, Union
+from typing import Dict, Any, Union, List, cast
 from openai.types.completion_usage import CompletionUsage
 from openai.types.chat.chat_completion import Choice, ChatCompletion
 from openai.types.chat import ChatCompletionMessage, ChatCompletionMessageToolCall
 from openai.types.chat.chat_completion_message_tool_call import Function
+from openai.resources.chat.completions import Completions
 import json
+import re
 
 class CustomLLMResponseAdapter:
+
+    arg_pattern = re.compile(r'(\w+)=((?:\'(?:[^\']|\'\')*?\'|"(?:[^"]|"")*?"|\S+?)(?:,|$))')
+
     @classmethod
     def adapt_response(cls, response: str, completion_kwargs: Dict[str, Any] = {}) -> Union[ChatCompletion, Choice]:
+        
+        def parse_function_args(function_args_str: str) -> Dict[str, str]:
+            function_args = {}
+            matches = cls.arg_pattern.findall(function_args_str)
+            
+            for match in matches:
+                arg_name, arg_value = match
+                arg_value = arg_value.strip("'\",")
+                arg_value = arg_value.replace("''", "'").replace('""', '"')
+                function_args[arg_name] = arg_value
+            
+            return function_args
+
         completion_kwargs = completion_kwargs or {}
         function_calls: List[ChatCompletionMessageToolCall] = []
+
         if "<<function>>" in response:
             function_parts = response.split("<<function>>")
+            print(function_parts)
             for part in function_parts[1:]:
                 if "(" in part:
                     function_name, function_args_str = part.split("(", 1)
                     function_args_str = function_args_str.rstrip(")")
-                    function_args = {}
-                    for arg in function_args_str.split(","):
-                        arg_name, arg_value = arg.split("=")
-                        function_args[arg_name.strip()] = arg_value.strip()
+                    function_args = parse_function_args(function_args_str)
                     function_calls.append(ChatCompletionMessageToolCall(
                         id=completion_kwargs.get("tool_call_id", "1"),
                         type="function",
@@ -36,7 +54,7 @@ class CustomLLMResponseAdapter:
             total_tokens=completion_kwargs.get("usage", {}).get("total_tokens", 0)
         )
 
-        if function_calls:
+        if len(function_calls) > 0:
             return ChatCompletion(
                 id=completion_kwargs.get("id", "chatcmpl-default-id"),
                 object="chat.completion",
@@ -49,7 +67,7 @@ class CustomLLMResponseAdapter:
                         logprobs=None,
                         message=ChatCompletionMessage(
                             role="assistant",
-                            content=None,
+                            content="",
                             function_call=None,
                             tool_calls=function_calls
                         )
@@ -72,7 +90,7 @@ class CustomLLMResponseAdapter:
                             role="assistant",
                             content=response,
                             function_call=None,
-                            tool_calls=None
+                            tool_calls=function_calls
                         )
                     )
                 ],
@@ -80,8 +98,9 @@ class CustomLLMResponseAdapter:
             )
 
 class CustomChatCompletions:
-    def __init__(self, completions):
-        self._original_completions = completions
+    def __init__(self, completions:Completions, debug:bool):
+        self._original_completions:Completions = completions
+        self._debug = debug
 
     def create(self, *args, **kwargs):
         messages = kwargs.get("messages", None)
@@ -99,16 +118,16 @@ class CustomChatCompletions:
                     break
 
         if messages is not None and tools is not None:
-            # Obtener la cadena de funciones de 'tools'
             functions_string = json.dumps(tools)
             
             updated_messages = self.insert_function_and_question(messages, functions_string)
             args = tuple(updated_messages if arg is messages else arg for arg in args)
             kwargs["messages"] = updated_messages
-
+        if self._debug: print(f'sending to llm: {updated_messages}')
         response = self._original_completions.create(*args, **kwargs)
 
-        adapted_response = CustomLLMResponseAdapter.adapt_response(response.choices[0].message.content)
+        adapted_response = CustomLLMResponseAdapter.adapt_response(cast(str, response.choices[0].message.content))
+        if self._debug: print(f'received from llm: {adapted_response}')
         return adapted_response
 
     def __getattr__(self, item):
@@ -130,4 +149,4 @@ class CustomChatCompletions:
 class CustomOpenAIClient(OpenAI):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.chat.completions = CustomChatCompletions(self.chat.completions)
+        self.chat.completions = cast(Completions, CustomChatCompletions(self.chat.completions, debug= True))
