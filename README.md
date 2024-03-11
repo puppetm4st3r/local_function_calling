@@ -2,7 +2,7 @@
 
 This repository contains a Python implementation that allows you to use gorilla-llm/gorilla-openfunctions-v2 language model to perform function calling using the OpenAI protocol. It provides a way to extend the capabilities of the local model by enabling it to generate function arguments and execute functions based on the provided specifications.
 
-For his purpose you have to serve the gorilla-llm/gorilla-openfunctions-v2 with any engine that mimics the open AI chat completion protocol (ex: TGI huggingface, Vllm, Aphoridte engine, others).
+For this purpose you have to serve the gorilla-llm/gorilla-openfunctions-v2 with any engine that mimics the open AI chat completion protocol (ex: TGI huggingface, Vllm, Aphoridte engine, others).
 
 Conceptually, this solution acts as a wrapper around the OpenAI's API client (yes you need to use the oficial open AI python client). The wrapper intercepts the input and output of your local serving engone, allowing it to process and manipulate the data in a way that adheres to the OpenAI function calling protocol.
 
@@ -21,6 +21,10 @@ The main purpose of this code is to enable function calling with a local languag
 - Specify a set of functions and their parameters that the local model can interact with.
 - Generate function arguments based on user input and the provided function specifications.
 - Execute the specified functions using the generated arguments.
+
+## Next steps
+
+There is room for improvement in the parser of the llm output since the existing structures of the output of the engine that may used (TGI, Vlmm, Aphrodite, other) could be reused because already imitates the open AI protocol instead of creating the response object completely from scratch.
 
 ## Usage
 
